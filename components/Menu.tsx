@@ -1,7 +1,6 @@
 import {
   Animated,
   DimensionValue,
-  Easing,
   Pressable,
   PressableProps,
   StyleSheet,
