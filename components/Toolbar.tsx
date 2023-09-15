@@ -13,7 +13,7 @@ import {
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { openUrl } from "../store/reducers/app";
+import { openUrl, setMenuActive } from "../store/reducers/app";
 
 const toolbar = StyleSheet.create({
   wrapper: {
@@ -55,12 +55,15 @@ export default function Toolbar() {
   const dispatch = useAppDispatch();
   const [inputValue, setInputValue] = useState<string>("");
   const [minimized, setMinimized] = useState<boolean>(false);
-  const toolOpacity = useRef(new Animated.Value(1)).current;
-  const toolPosition = useRef(new Animated.Value(0)).current;
+  const toolEnabled = useRef(new Animated.Value(1)).current;
+  const toolbarOpacity = useRef(new Animated.Value(1)).current;
+  const toolbarPosition = useRef(new Animated.Value(0)).current;
 
-  interface ButtonProps extends PressableProps {}
-
-  const Button: React.FC<ButtonProps> = ({ onPress, children, ...props }) => {
+  const Button: React.FC<PressableProps> = ({
+    onPress,
+    children,
+    ...props
+  }) => {
     const [isActive, setActive] = useState<boolean>(false);
     return (
       <Pressable
@@ -70,25 +73,10 @@ export default function Toolbar() {
             backgroundColor: "#f4f4f511",
           },
         ]}
-        onPress={() =>
-          Alert.alert("", "", [
-            {
-              text: "(っ◔◡◔)っ ♥ 🌷👑 ♥",
-            },
-            {
-              text: "(っ◔◡◔)っ ♥ 🌷👑 ♥",
-              onPress: () =>
-                Linking.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
-            },
-            {
-              text: "(っ◔◡◔)っ ♥ 🌷👑 ♥",
-              onPress: () =>
-                Linking.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
-            },
-          ])
-        }
+        onPress={onPress}
         onPressIn={() => setActive(true)}
         onPressOut={() => setActive(false)}
+        {...props}
       >
         {children}
       </Pressable>
@@ -97,14 +85,20 @@ export default function Toolbar() {
 
   function minimizeToolbar() {
     setMinimized(true);
-    Animated.timing(toolOpacity, {
+    Animated.timing(toolEnabled, {
       toValue: 0,
       duration: 500,
       easing: Easing.bezier(0.4, 0, 0.2, 1),
       useNativeDriver: true,
     }).start();
-    Animated.timing(toolPosition, {
+    Animated.timing(toolbarPosition, {
       toValue: 110,
+      duration: 500,
+      easing: Easing.bezier(0.4, 0, 0.2, 1),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(toolbarOpacity, {
+      toValue: 0.7,
       duration: 500,
       easing: Easing.bezier(0.4, 0, 0.2, 1),
       useNativeDriver: true,
@@ -113,14 +107,20 @@ export default function Toolbar() {
 
   function maximizeToolbar() {
     setMinimized(false);
-    Animated.timing(toolOpacity, {
+    Animated.timing(toolEnabled, {
       toValue: 1,
       duration: 500,
       easing: Easing.bezier(0.4, 0, 0.2, 1),
       useNativeDriver: true,
     }).start();
-    Animated.timing(toolPosition, {
+    Animated.timing(toolbarPosition, {
       toValue: 0,
+      duration: 500,
+      easing: Easing.bezier(0.4, 0, 0.2, 1),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(toolbarOpacity, {
+      toValue: 1,
       duration: 500,
       easing: Easing.bezier(0.4, 0, 0.2, 1),
       useNativeDriver: true,
@@ -168,9 +168,10 @@ export default function Toolbar() {
         {
           transform: [
             {
-              translateY: toolPosition,
+              translateY: toolbarPosition,
             },
           ],
+          opacity: toolbarOpacity,
         },
       ]}
     >
@@ -199,7 +200,7 @@ export default function Toolbar() {
           style={{
             display: "flex",
             flexDirection: "column",
-            opacity: toolOpacity,
+            opacity: toolEnabled,
             pointerEvents: minimized ? "none" : "auto",
           }}
         >
@@ -246,10 +247,29 @@ export default function Toolbar() {
             <Button>
               <Feather name="plus" size={26} color="#f4f4f5" />
             </Button>
-            <Button>
+            <Button onPress={() => dispatch(setMenuActive(true))}>
               <Feather name="menu" size={26} color="#f4f4f5" />
             </Button>
-            <Button>
+            <Button
+              onPress={() =>
+                Alert.alert("", "(っ◔◡◔)っ ♥ 🌷👑 ♥", [
+                  {
+                    text: "(っ◔◡◔)っ ♥ 🌷👑 ♥",
+                    onPress: () =>
+                      Linking.openURL(
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                      ),
+                  },
+                  {
+                    text: "(っ◔◡◔)っ ♥ 🌷👑 ♥",
+                    onPress: () =>
+                      Linking.openURL(
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                      ),
+                  },
+                ])
+              }
+            >
               <MaterialCommunityIcons
                 name="checkbox-multiple-blank-outline"
                 size={26}

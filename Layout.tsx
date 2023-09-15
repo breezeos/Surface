@@ -1,9 +1,9 @@
-import { useFonts } from "expo-font";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Appearance, Image, StyleSheet, Text, View } from "react-native";
 import Toolbar from "./components/Toolbar";
 import { WebView } from "react-native-webview";
 import { useAppSelector } from "./store/hooks";
+import Menu from "./components/Menu";
 
 const isDark = Appearance.getColorScheme() === "dark";
 
@@ -26,7 +26,6 @@ const layout = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#2563eb",
   },
   text: {
     color: "#f4f4f5",
@@ -38,14 +37,10 @@ const layout = StyleSheet.create({
 });
 
 export default function Layout() {
+  const app = useAppSelector((state) => state.app);
   const url = useAppSelector((state) => state.app.url);
   const [splashScreen, setSplashScreen] = useState<boolean>(false);
 
-  const [loadFont] = useFonts({
-    OptimisticDisplay: require("./assets/fonts/gJ8wmjmQhMa.ttf"),
-  });
-
-  if (!loadFont) return null;
   return (
     <View style={layout.view}>
       {!url ? (
@@ -53,6 +48,9 @@ export default function Layout() {
           <View
             style={[
               layout.iconBg,
+              {
+                backgroundColor: app.privateMode ? "#09090b" : "#2563eb",
+              },
               !splashScreen && {
                 width: 130,
                 height: 130,
@@ -61,13 +59,23 @@ export default function Layout() {
               },
             ]}
           >
-            <Image
-              style={{
-                width: splashScreen ? 200 : 130,
-                height: splashScreen ? 200 : 130,
-              }}
-              source={require("./assets/icons/surface.png")}
-            />
+            {app.privateMode ? (
+              <Image
+                style={{
+                  width: splashScreen ? 200 : 130,
+                  height: splashScreen ? 200 : 130,
+                }}
+                source={require("./assets/icons/surface-private.png")}
+              />
+            ) : (
+              <Image
+                style={{
+                  width: splashScreen ? 200 : 130,
+                  height: splashScreen ? 200 : 130,
+                }}
+                source={require("./assets/icons/surface.png")}
+              />
+            )}
           </View>
           <View
             style={{
@@ -86,6 +94,7 @@ export default function Layout() {
           <WebView source={{ uri: url }} />
         </View>
       )}
+      <Menu />
       <Toolbar />
     </View>
   );
